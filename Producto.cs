@@ -21,7 +21,7 @@ namespace Prototipo
 
         public Producto() { }
 
-        public Producto(Categoria categoria, string nombre, string descripcion, decimal precio, int stockDisponible, ConexionSQL conexion)
+        public Producto(Categoria categoria, string nombre, string descripcion, decimal precio, int stockDisponible)
         {
             this.Categoria = categoria;
             this.Nombre = nombre;
@@ -30,7 +30,7 @@ namespace Prototipo
             this.StockDisponible = stockDisponible;
         }
 
-        public void CrearProducto(Categoria categoria, string nombre, string descripcion, decimal precio, int stockDisponible, ConexionSQL conexion)
+        public void CrearProducto(Categoria categoria, string nombre, string descripcion, decimal precio, int stockDisponible)
         {
             string query = "insert into productos(categoriaproducto, nombreproducto, descripcionproducto, precioproducto, stockdisponible) values (@CategoriaId, @Nombre, @Descripcion, @Precio, @Stock)";
             using (var conn = this.Conexion.AbrirConexion())
