@@ -6,15 +6,16 @@ using System.Threading.Tasks;
 using System.Data.SQLite;
 using System.Windows.Forms;
 using System.Data.SqlClient;
+using MySql.Data.MySqlClient;
 
 namespace Prototipo
 {
     internal class ConexionSQL
     {
-        string connectionString = "Server=127.0.0.1;Port=3306;Database=SalesApp;Uid=root;Pwd=Fabi79736610;";
-        public SQLiteConnection AbrirConexion()
+        string connectionString = "Server=localhost;Port=3306;Database=sales;Uid=root;Pwd=12345;";
+        public MySqlConnection AbrirConexion()
         {
-            SQLiteConnection conexion = new SQLiteConnection(this.connectionString);
+            MySqlConnection conexion = new MySqlConnection(this.connectionString);
             try
             {
                 conexion.Open();
@@ -28,7 +29,7 @@ namespace Prototipo
             return conexion;
         }
 
-        public void CerrarConexion(SQLiteConnection conexion)
+        public void CerrarConexion(MySqlConnection conexion)
         {
             try
             {
@@ -44,4 +45,6 @@ namespace Prototipo
             }
         }
     }
+
+
 }
