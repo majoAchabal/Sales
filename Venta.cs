@@ -1,20 +1,15 @@
-﻿using MySql.Data.MySqlClient;
+using MySql.Data.MySqlClient;
 using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Prototipo
 {
     internal class Venta
     {
-        public int Id {  get; set; }
+        public int Id { get; set; }
         public int Vendedor { get; set; }
         public int Cliente { get; set; }
-        public DateTime Fecha { get; set; }
+        public string Fecha { get; set; }
         public string NumeroFactura { get; private set; }
 
         private ConexionSQL Conexion = new ConexionSQL();
@@ -22,7 +17,7 @@ namespace Prototipo
 
         public Venta() { }
 
-        public Venta(int vendedor, int cliente, DateTime fecha)
+        public Venta(int vendedor, int cliente, string fecha)
         {
             this.Vendedor = vendedor;
             this.Cliente = cliente;
@@ -53,17 +48,16 @@ namespace Prototipo
             return factura.NumeroFactura;
         }
 
-
         public void RegistrarVenta()
         {
-            string query = "insert into venta(empleadoventa, clienteventa, fechaventa) values (@Vendedor, @Cliente, @Fecha);";
+            string query = "insert into venta(empleadoventa, clienteventa, fechaventa, numerofactura) values (@Vendedor, @Cliente, @Fecha, @NumeroFactura);";
             using (var conn = this.Conexion.AbrirConexion())
             {
                 using (var cmd = new MySqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@vendedor", Vendedor);
-                    cmd.Parameters.AddWithValue("@cliente", Cliente);
-                    cmd.Parameters.AddWithValue("@fecha", Fecha);
+                    cmd.Parameters.AddWithValue("@Vendedor", Vendedor);
+                    cmd.Parameters.AddWithValue("@Cliente", Cliente);
+                    cmd.Parameters.AddWithValue("@Fecha", Fecha);
                     cmd.Parameters.AddWithValue("@NumeroFactura", NumeroFactura);
 
                     try
@@ -78,12 +72,11 @@ namespace Prototipo
                     }
                 }
             }
-
         }
 
         public void eliminarVenta(int id)
         {
-            string query = "DELETE FROM venta WHERE idventa = @id";
+            string query = "DELETE FROM venta WHERE idventa = @Id";
             ConexionSQL conexion = new ConexionSQL();
 
             using (var conn = conexion.AbrirConexion())
@@ -112,14 +105,14 @@ namespace Prototipo
 
         public Venta buscarVenta(int id)
         {
-            string query = "select empleadoventa, clienteventa, fechaventa FROM venta where idventa = @id";
+            string query = "SELECT empleadoventa, clienteventa, fechaventa, numerofactura FROM venta WHERE idventa = @Id";
             ConexionSQL conexion = new ConexionSQL();
             Venta venta = null;
 
             using (var conn = conexion.AbrirConexion())
-            using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, conn))
+            using (var cmd = new MySqlCommand(query, conn))
             {
-                cmd.Parameters.AddWithValue("@id", id);
+                cmd.Parameters.AddWithValue("@Id", id);
 
                 try
                 {
@@ -127,12 +120,12 @@ namespace Prototipo
                     {
                         if (reader.Read())
                         {
-
                             venta = new Venta
                             {
                                 Vendedor = reader.GetInt32("empleadoventa"),
                                 Cliente = reader.GetInt32("clienteventa"),
-                                Fecha = reader.GetDateTime("fechaventa")
+                                Fecha = reader.GetString("fechaventa"),
+                                NumeroFactura = reader.GetString("numerofactura")
                             };
                         }
                     }
@@ -145,7 +138,5 @@ namespace Prototipo
 
             return venta;
         }
-
-       
     }
 }
