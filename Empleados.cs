@@ -1,6 +1,8 @@
-using MySql.Data.MySqlClient;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,146 +10,218 @@ using System.Windows.Forms;
 
 namespace Prototipo
 {
-    internal class Empleado
+    public partial class Empleados : Form
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Surname { get; set; }
-        public string Cargo { get; set; }
-        public string Celular { get; set; }
-        public string Username { get; set; }
+        private Menu menu;
+
+
+        private bool isFirstClickNombre = true;
+        private bool isFirstClickApellido = true;
+        private bool isFirstClickCel = true;
+        private bool isFirstClickUser = true;
         
-        public ConexionSQL Conexion = new ConexionSQL();
-        public Empleado() { }
 
-        public Empleado(int id, string name, string surname, string cargo, string celular, string username)
+
+        public Empleados(Menu menu)
         {
-            Id = id;
-            Name = name;
-            Surname = surname;
-            Cargo = cargo;
-            Celular = celular;
-            Username = username;
+            InitializeComponent();
+            this.menu = menu;
         }
 
-        public void AddEmpleado(string name, string surname, string cargo, string celular, string username)
+        //CERRAR
+        private void btnCerrar_Click(object sender, EventArgs e)
         {
-            string query = "insert into empleados(nombreempleados, apellidoempleados, cargoempleados, celularempleados, usernameempleados) values (@nombre, @apellido, @cargo, @cel, @username)";
-            using (var conn = this.Conexion.AbrirConexion())
-            {
-                using (var cmd = new MySqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@nombre", name);
-                    cmd.Parameters.AddWithValue("@apellido", surname);
-                    cmd.Parameters.AddWithValue("@cargo", cargo);
-                    cmd.Parameters.AddWithValue("@username", username);
-                    cmd.Parameters.AddWithValue("@cel", celular);
+            this.Hide();
+            menu.Show();
 
-                    try
-                    {
-                        cmd.ExecuteNonQuery();
-                        MessageBox.Show("Empleado agregado correctamente.");
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error al agregar el empleado: {ex.Message}");
-                    }
+        }
+        private void btnCerrar_MouseHover(object sender, EventArgs e)
+        {
+            btnCerrar.Image = Properties.Resources.btncerrarseleccionado;
+        }
+
+        private void btnCerrar_MouseLeave(object sender, EventArgs e)
+        {
+            btnCerrar.Image = Properties.Resources.btncerrar;
+        }
+        //
+
+        //BUSCAR
+
+        private void btnBuscar_Click(object sender, EventArgs e)
+        {
+            int id;
+            if (int.TryParse(inputId.Text, out id))
+            {
+                Empleado empleado = new Empleado();
+                Empleado resultado = empleado.BuscarEmpleado(id);
+
+                if (resultado != null)
+                {
+                    inputNombre.Text = resultado.Name;
+                    inputApellido.Text = resultado.Surname;
+                    cbCargo.Text = resultado.Cargo;
+                    inputCelular.Text = resultado.Celular;
+                    inputUsuario.Text = resultado.Username;
                 }
+                else
+                {
+                    MessageBox.Show("Empleado no encontrado.");
+                }
+            }
+            else
+            {
+                MessageBox.Show("Por favor ingrese un ID válido.");
             }
         }
 
-        public Empleado BuscarEmpleado(int id)
+        private void btnBuscar_MouseHover(object sender, EventArgs e)
         {
-            string query = "select nombreempleados, apellidoempleados, cargoempleados, celularempleados, usernameempleados from empleados where idempleados = @id";
-            ConexionSQL conexion = new ConexionSQL();
-            Empleado empleado = null;
-
-            using (var conn = conexion.AbrirConexion())
-            using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, conn))
-            {
-                cmd.Parameters.AddWithValue("@id", id);
-
-                try
-                {
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-
-                            empleado = new Empleado
-                            {
-                                Name = reader.GetString("nombreempleados"),
-                                Surname = reader.GetString("apellidoempleados"),
-                                Cargo = reader.GetString("cargoempleados"),
-                                Celular = reader.GetString("celularempleados"),
-                                Username = reader.GetString("usernameempleados")
-                            };
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al buscar el empleado: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-
-            return empleado;
+            btnBuscar.Image = Properties.Resources.btnbuscarseleccionado;
         }
 
-        public void UpdateEmpleado(int id, string name, string surname, string cargo, string celular, string username)
+        private void btnBuscar_MouseLeave(object sender, EventArgs e)
         {
-            string query = "update empleados set nombreempleados = @nombre, apellidoempleados = @surname, cargoempleados = @cargo, celularempleados = @cel, usernameempleados = @uaer where idempleados = @id";
-            using (var conn = this.Conexion.AbrirConexion())
-            {
-                using (var cmd = new MySqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@nombre", name);
-                    cmd.Parameters.AddWithValue("@surname", surname);
-                    cmd.Parameters.AddWithValue("@cargo", cargo);
-                    cmd.Parameters.AddWithValue("@user", username);
-                    cmd.Parameters.AddWithValue("@cel", celular);
-                    cmd.Parameters.AddWithValue("@id", id);
+            btnBuscar.Image = Properties.Resources.btnbuscar;
+        }
+        //
 
-                    try
-                    {
-                        cmd.ExecuteNonQuery();
-                        MessageBox.Show("Empleado actualizado correctamente.");
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error al actualizar el empleado: {ex.Message}");
-                    }
-                }
+        //CREAR
+
+        private void btnCrear_Click(object sender, EventArgs e)
+        {
+            Empleado empleado = new Empleado();
+            empleado.AddEmpleado(
+                inputNombre.Text,
+                inputApellido.Text,
+                cbCargo.Text,
+                inputCelular.Text,
+                inputUsuario.Text
+            );
+        }
+
+        private void btnCrear_MouseHover(object sender, EventArgs e)
+        {
+            btnCrear.Image = Properties.Resources.btncrearseleccionado;
+        }
+
+        private void btnCrear_MouseLeave(object sender, EventArgs e)
+        {
+            btnCrear.Image = Properties.Resources.btncrear;
+        }
+        //
+
+        //ELIMINAR
+
+        private void btnEliminar_Click(object sender, EventArgs e)
+        {
+            int id;
+            if (int.TryParse(inputId.Text, out id))
+            {
+                Empleado empleado = new Empleado();
+                empleado.EliminarEmpleado(id);
+            }
+            else
+            {
+                MessageBox.Show("Por favor ingrese un ID válido.");
             }
         }
 
-        public void EliminarEmpleado(int id)
+        private void btnEliminar_MouseHover(object sender, EventArgs e)
         {
-            string query = "DELETE FROM empleados WHERE idempleados = @id";
-            ConexionSQL conexion = new ConexionSQL();
+            btnEliminar.Image = Properties.Resources.btneliminarseleccionado;
+        }
 
-            using (var conn = conexion.AbrirConexion())
-            using (var cmd = new MySqlCommand(query, conn))
+        private void btnEliminar_MouseLeave(object sender, EventArgs e)
+        {
+            btnEliminar.Image = Properties.Resources.btneliminar;
+        }
+        //
+
+        //MODIFICAR
+
+        private void btnModificar_Click(object sender, EventArgs e)
+        {
+            int id;
+            if (int.TryParse(inputId.Text, out id))
             {
-                cmd.Parameters.AddWithValue("@id", id);
-
-                try
-                {
-                    int rowsAffected = cmd.ExecuteNonQuery();
-                    if (rowsAffected > 0)
-                    {
-                        MessageBox.Show("Empleado eliminado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    else
-                    {
-                        MessageBox.Show("No se encontró el empleado con el ID especificado.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al eliminar empleado: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                Empleado empleado = new Empleado();
+                empleado.UpdateEmpleado(
+                    id,
+                    inputNombre.Text,
+                    inputApellido.Text,
+                    cbCargo.Text,
+                    inputCelular.Text,
+                    inputUsuario.Text
+                );
+            }
+            else
+            {
+                MessageBox.Show("Por favor ingrese un ID válido.");
             }
         }
+
+        private void btnModificar_MouseHover(object sender, EventArgs e)
+        {
+            btnModificar.Image = Properties.Resources.btnmodifiicarseleccionado;
+        }
+
+        private void btnModificar_MouseLeave(object sender, EventArgs e)
+        {
+            btnModificar.Image = Properties.Resources.btnmodificar;
+        }
+        //
+
+        //EMPLEADOS
+        private void Empleados_Load(object sender, EventArgs e)
+        {
+            this.ActiveControl = titulo;
+        }
+
+        //INPUT NOMBRE
+
+        private void inputNombre_Enter(object sender, EventArgs e)
+        {
+            if (isFirstClickNombre)
+            {
+                inputNombre.Clear();
+                isFirstClickNombre = false;
+            }
+        }
+
+        //INPUT APELLIDO
+
+        private void inputApellido_Enter(object sender, EventArgs e)
+        {
+            if (isFirstClickApellido)
+            {
+                inputApellido.Clear();
+                isFirstClickApellido = false;
+            }
+        }
+
+        //INPUT CEL
+
+        private void inputCelular_Enter(object sender, EventArgs e)
+        {
+            if (isFirstClickCel)
+            {
+                inputCelular.Clear();
+                isFirstClickCel = false;
+            }
+        }
+
+        //INPUT USUARIO
+
+        private void inputUsuario_Enter(object sender, EventArgs e)
+        {
+            if (isFirstClickUser)
+            {
+                inputUsuario.Clear();
+                isFirstClickUser = false;
+            }
+        }
+
+        //
     }
 }

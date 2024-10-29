@@ -1,6 +1,8 @@
-using MySql.Data.MySqlClient;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,283 +10,193 @@ using System.Windows.Forms;
 
 namespace Prototipo
 {
-    internal class Cliente
+    public partial class Clientes : Form
     {
-        public int Nit {  get; set; }
-        public string Name { get; set; }
-        public string Celular { get; set; }
+        private Menu menu;
+        private Cliente clienteDB = new Cliente();
 
-        public ConexionSQL Conexion = new ConexionSQL();
 
-        public Cliente()
+        private bool isFirstClickNombre = true;
+        private bool isFirstClickNIT = true;
+        private bool isFirstClickCel = true;
+
+
+        public Clientes(Menu menu)
         {
-
+            InitializeComponent();
+            this.menu = menu;
         }
 
-        public Cliente(int nit, string name, string celular)
+        //CERRAR
+        private void btnCerrar_Click(object sender, EventArgs e)
         {
-            Nit = nit;
-            Name = name;
-            Celular = celular;
+            this.Hide();
+            menu.Show();
+
+        }
+        private void btnCerrar_MouseHover(object sender, EventArgs e)
+        {
+            btnCerrar.Image = Properties.Resources.btncerrarseleccionado;
         }
 
-        public void AgregarCliente(int nit, string nombre, string cel)
+        private void btnCerrar_MouseLeave(object sender, EventArgs e)
         {
-            string query = "insert into clientes(nitclientes, nombrecliente, celularcliente) values (@nit, @name, @celular)";
-            using (var conn = this.Conexion.AbrirConexion())
+            btnCerrar.Image = Properties.Resources.btncerrar;
+        }
+        //
+
+        //BUSCAR
+
+        private void btnBuscar_Click(object sender, EventArgs e)
+        {
+            if (int.TryParse(inputNIT.Text, out int nit))
             {
-                using (var cmd = new MySqlCommand(query, conn))
+                Cliente cliente = clienteDB.BuscarCliente(nit);
+                if (cliente != null)
                 {
-                    cmd.Parameters.AddWithValue("@nit", nit);
-                    cmd.Parameters.AddWithValue("@name", nombre);
-                    cmd.Parameters.AddWithValue("@celular", cel);
-
-                    try
-                    {
-                        cmd.ExecuteNonQuery();
-                        MessageBox.Show("Cliente agregado correctamente.");
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error al agregar el cliente: {ex.Message}");
-                    }
+                    inputNombre.Text = cliente.Name;
+                    inputCelular.Text = cliente.Celular;
+                    MessageBox.Show("Cliente encontrado.");
                 }
+                else
+                {
+                    MessageBox.Show("Cliente no encontrado.");
+                }
+            }
+            else
+            {
+                MessageBox.Show("Por favor ingrese un NIT válido.");
             }
         }
 
-        public Cliente BuscarCliente(int nit)
+        private void btnBuscar_MouseHover(object sender, EventArgs e)
         {
-            string query = "select nitclientes, nombrecliente, celularcliente from clientes where nitclientes = @nit";
-            ConexionSQL conexion = new ConexionSQL();
-            Cliente cliente = null;
-
-            using (var conn = conexion.AbrirConexion())
-            using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, conn))
-            {
-                cmd.Parameters.AddWithValue("@nit", nit);
-
-                try
-                {
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-
-                            cliente = new Cliente
-                            {
-                                Nit = reader.GetInt32("nitclientes"),
-                                Name = reader.GetString("nombrecliente"),
-                                Celular = reader.GetString("celularcliente")
-                            };
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al buscar el cliente: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-
-            return cliente;
+            btnBuscar.Image = Properties.Resources.btnbuscarseleccionado;
         }
 
-        public void ActualizarCliente(int nit, string nombre, string cel)
+        private void btnBuscar_MouseLeave(object sender, EventArgs e)
         {
-            string query = "UPDATE clientes SET nombrecliente = @name, celularcliente = @cel WHERE nitclientes = @nit";
-            using (var conn = Conexion.AbrirConexion())
-            {
-                using (var cmd = new MySqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@nit", nit);
-                    cmd.Parameters.AddWithValue("@name", nombre);
-                    cmd.Parameters.AddWithValue("@cel", cel);
+            btnBuscar.Image = Properties.Resources.btnbuscar;
+        }
+        //
 
-                    try
-                    {
-                        cmd.ExecuteNonQuery();
-                        MessageBox.Show("Cliente actualizado correctamente.");
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error al actualizar el cliente: {ex.Message}");
-                    }
-                }
+        //CREAR
+
+        private void btnCrear_Click(object sender, EventArgs e)
+        {
+            if (int.TryParse(inputNIT.Text, out int nit) && !string.IsNullOrEmpty(inputNombre.Text) && !string.IsNullOrEmpty(inputCelular.Text))
+            {
+                clienteDB.AgregarCliente(nit, inputNombre.Text, inputCelular.Text);
+            }
+            else
+            {
+                MessageBox.Show("Por favor llene todos los campos.");
             }
         }
 
-        public void EliminarCliente(int nit)
+        private void btnCrear_MouseHover(object sender, EventArgs e)
         {
-            string query = "DELETE FROM clientes WHERE nitclientes = @nit";
-            ConexionSQL conexion = new ConexionSQL();
+            btnCrear.Image = Properties.Resources.btncrearseleccionado;
+        }
 
-            using (var conn = conexion.AbrirConexion())
-            using (var cmd = new MySqlCommand(query, conn))
+        private void btnCrear_MouseLeave(object sender, EventArgs e)
+        {
+            btnCrear.Image = Properties.Resources.btncrear;
+        }
+        //
+
+        //ELIMINAR
+
+        private void btnEliminar_Click(object sender, EventArgs e)
+        {
+            if (int.TryParse(inputNIT.Text, out int nit))
             {
-                cmd.Parameters.AddWithValue("@nit", nit);
-
-                try
-                {
-                    int rowsAffected = cmd.ExecuteNonQuery();
-                    if (rowsAffected > 0)
-                    {
-                        MessageBox.Show("Cliente eliminado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    else
-                    {
-                        MessageBox.Show("No se encontró el cliente con el NIT especificado.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al eliminar cliente: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                clienteDB.EliminarCliente(nit);
+            }
+            else
+            {
+                MessageBox.Show("Por favor ingrese un NIT válido.");
             }
         }
+
+        private void btnEliminar_MouseHover(object sender, EventArgs e)
+        {
+            btnEliminar.Image = Properties.Resources.btneliminarseleccionado;
+        }
+
+        private void btnEliminar_MouseLeave(object sender, EventArgs e)
+        {
+            btnEliminar.Image = Properties.Resources.btneliminar;
+        }
+        //
+
+        //MODIFICAR
+
+        private void btnModificar_Click(object sender, EventArgs e)
+        {
+            if (int.TryParse(inputNIT.Text, out int nit) && !string.IsNullOrEmpty(inputNombre.Text) && !string.IsNullOrEmpty(inputCelular.Text))
+            {
+                clienteDB.ActualizarCliente(nit, inputNombre.Text, inputCelular.Text);
+            }
+            else
+            {
+                MessageBox.Show("Por favor llene todos los campos.");
+            }
+        }
+
+        private void btnModificar_MouseHover(object sender, EventArgs e)
+        {
+            btnModificar.Image = Properties.Resources.btnmodifiicarseleccionado;
+        }
+
+        private void btnModificar_MouseLeave(object sender, EventArgs e)
+        {
+            btnModificar.Image = Properties.Resources.btnmodificar;
+        }
+        //
+
+        //CLIENTES
+
+        private void Clientes_Load(object sender, EventArgs e)
+        {
+            this.ActiveControl = titulo;
+        }
+
+        //
+
+        //INPUT NOMBRE
+
+        private void inputNombre_Enter(object sender, EventArgs e)
+        {
+            if (isFirstClickNombre)
+            {
+                inputNombre.Clear();
+                isFirstClickNombre = false;
+            }
+        }
+
+        //INPUT NIT
+
+        private void inputNIT_Enter(object sender, EventArgs e)
+        {
+            if (isFirstClickNIT)
+            {
+                inputNIT.Clear();
+                isFirstClickNIT = false;
+            }
+        }
+
+        //INPUT CELULAR
+
+        private void inputCelular_Enter(object sender, EventArgs e)
+        {
+            if (isFirstClickCel)
+            {
+                inputCelular.Clear();
+                isFirstClickCel = false;
+            }
+        }
+
+        //
     }
- }
-
-using MySql.Data.MySqlClient;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace Prototipo
-{
-    internal class Cliente
-    {
-        public int Nit {  get; set; }
-        public string Name { get; set; }
-        public string Celular { get; set; }
-
-        public ConexionSQL Conexion = new ConexionSQL();
-
-        public Cliente()
-        {
-
-        }
-
-        public Cliente(int nit, string name, string celular)
-        {
-            Nit = nit;
-            Name = name;
-            Celular = celular;
-        }
-
-        public void AgregarCliente(int nit, string nombre, string cel)
-        {
-            string query = "insert into clientes(nitclientes, nombrecliente, celularcliente) values (@nit, @name, @celular)";
-            using (var conn = this.Conexion.AbrirConexion())
-            {
-                using (var cmd = new MySqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@nit", nit);
-                    cmd.Parameters.AddWithValue("@name", nombre);
-                    cmd.Parameters.AddWithValue("@celular", cel);
-
-                    try
-                    {
-                        cmd.ExecuteNonQuery();
-                        MessageBox.Show("Cliente agregado correctamente.");
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error al agregar el cliente: {ex.Message}");
-                    }
-                }
-            }
-        }
-
-        public Cliente BuscarCliente(int nit)
-        {
-            string query = "select nitclientes, nombrecliente, celularcliente from clientes where nitclientes = @nit";
-            ConexionSQL conexion = new ConexionSQL();
-            Cliente cliente = null;
-
-            using (var conn = conexion.AbrirConexion())
-            using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, conn))
-            {
-                cmd.Parameters.AddWithValue("@nit", nit);
-
-                try
-                {
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-
-                            cliente = new Cliente
-                            {
-                                Nit = reader.GetInt32("nitclientes"),
-                                Name = reader.GetString("nombrecliente"),
-                                Celular = reader.GetString("celularcliente")
-                            };
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al buscar el cliente: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-
-            return cliente;
-        }
-
-        public void ActualizarCliente(int nit, string nombre, string cel)
-        {
-            string query = "UPDATE clientes SET nombrecliente = @name, celularcliente = @cel WHERE nitclientes = @nit";
-            using (var conn = Conexion.AbrirConexion())
-            {
-                using (var cmd = new MySqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@nit", nit);
-                    cmd.Parameters.AddWithValue("@name", nombre);
-                    cmd.Parameters.AddWithValue("@cel", cel);
-
-                    try
-                    {
-                        cmd.ExecuteNonQuery();
-                        MessageBox.Show("Cliente actualizado correctamente.");
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error al actualizar el cliente: {ex.Message}");
-                    }
-                }
-            }
-        }
-
-        public void EliminarCliente(int nit)
-        {
-            string query = "DELETE FROM clientes WHERE nitclientes = @nit";
-            ConexionSQL conexion = new ConexionSQL();
-
-            using (var conn = conexion.AbrirConexion())
-            using (var cmd = new MySqlCommand(query, conn))
-            {
-                cmd.Parameters.AddWithValue("@nit", nit);
-
-                try
-                {
-                    int rowsAffected = cmd.ExecuteNonQuery();
-                    if (rowsAffected > 0)
-                    {
-                        MessageBox.Show("Cliente eliminado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    else
-                    {
-                        MessageBox.Show("No se encontró el cliente con el NIT especificado.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al eliminar cliente: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
-    }
- }
-
+}
