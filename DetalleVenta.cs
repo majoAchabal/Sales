@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace Prototipo
 {
-    internal class DetalleVenta
+    public class DetalleVenta
     {
         public int IdVenta { get; set; }
         public Producto Producto { get; set; }
