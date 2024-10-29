@@ -1,10 +1,10 @@
-using MySql.Data.MySqlClient;
+﻿using MySql.Data.MySqlClient;
 using System;
 using System.Windows.Forms;
 
 namespace Prototipo
 {
-    internal class Venta
+    public class Venta
     {
         public int Id { get; set; }
         public int Vendedor { get; set; }
@@ -17,14 +17,17 @@ namespace Prototipo
 
         public Venta() { }
 
-        public Venta(int vendedor, int cliente, string fecha)
+        public Venta(int vendedor, int cliente, string fecha, GestionAutorizaciones gestionAutorizacion, CertificadoDigital certificadoDigital)
         {
             this.Vendedor = vendedor;
             this.Cliente = cliente;
             this.Fecha = fecha;
-            this.NumeroFactura = ObtenerNumeroFactura();
+            this.factura = new Factura(gestionAutorizacion, certificadoDigital);
+            this.NumeroFactura = factura.NumeroFactura;
         }
 
+
+        // Method to get client data
         public (string Nit, string Nombre) ObtenerDatosCliente(int clienteId)
         {
             Cliente cliente = new Cliente();
@@ -41,16 +44,30 @@ namespace Prototipo
             }
         }
 
-        private string ObtenerNumeroFactura()
+        // Method to generate an invoice number
+        private string GenerarNumeroFactura()
         {
-            Factura factura = new Factura();
-            factura.NumeroFactura = factura.Id.ToString();
+            // Assuming Factura class has a proper constructor for generating an invoice number
+            // Assuming you have a GestionAutorizaciones and CertificadoDigital instance
+            GestionAutorizaciones gestionAutorizacion = new GestionAutorizaciones("connectionStringHere");
+            CertificadoDigital certificadoDigital = new CertificadoDigital("path/to/certificado.pfx", "password");
+
+            Factura factura = new Factura(gestionAutorizacion, certificadoDigital);
+
+            factura.GenerarNumeroFactura();
             return factura.NumeroFactura;
         }
 
+        // Method to register a sale in the database
         public void RegistrarVenta()
         {
-            string query = "insert into venta(empleadoventa, clienteventa, fechaventa, numerofactura) values (@Vendedor, @Cliente, @Fecha, @NumeroFactura);";
+            if (string.IsNullOrEmpty(NumeroFactura))
+            {
+                MessageBox.Show("No se ha generado un número de factura.");
+                return;
+            }
+
+            string query = "INSERT INTO venta (empleadoventa, clienteventa, fechaventa, numerofactura) VALUES (@Vendedor, @Cliente, @Fecha, @NumeroFactura);";
             using (var conn = this.Conexion.AbrirConexion())
             {
                 using (var cmd = new MySqlCommand(query, conn))
@@ -74,12 +91,11 @@ namespace Prototipo
             }
         }
 
-        public void eliminarVenta(int id)
+        // Method to delete a sale by ID
+        public void EliminarVenta(int id)
         {
             string query = "DELETE FROM venta WHERE idventa = @Id";
-            ConexionSQL conexion = new ConexionSQL();
-
-            using (var conn = conexion.AbrirConexion())
+            using (var conn = this.Conexion.AbrirConexion())
             using (var cmd = new MySqlCommand(query, conn))
             {
                 cmd.Parameters.AddWithValue("@Id", id);
@@ -103,13 +119,13 @@ namespace Prototipo
             }
         }
 
-        public Venta buscarVenta(int id)
+        // Method to search for a sale by ID
+        public Venta BuscarVenta(int id)
         {
             string query = "SELECT empleadoventa, clienteventa, fechaventa, numerofactura FROM venta WHERE idventa = @Id";
-            ConexionSQL conexion = new ConexionSQL();
             Venta venta = null;
 
-            using (var conn = conexion.AbrirConexion())
+            using (var conn = this.Conexion.AbrirConexion())
             using (var cmd = new MySqlCommand(query, conn))
             {
                 cmd.Parameters.AddWithValue("@Id", id);
@@ -122,11 +138,16 @@ namespace Prototipo
                         {
                             venta = new Venta
                             {
+                                Id = id,
                                 Vendedor = reader.GetInt32("empleadoventa"),
                                 Cliente = reader.GetInt32("clienteventa"),
                                 Fecha = reader.GetString("fechaventa"),
                                 NumeroFactura = reader.GetString("numerofactura")
                             };
+                        }
+                        else
+                        {
+                            MessageBox.Show("No se encontró una venta con el ID especificado.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                     }
                 }
