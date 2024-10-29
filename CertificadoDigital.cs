@@ -1,24 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using MySql.Data.MySqlClient;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Security.Cryptography;
+﻿using MySql.Data.MySqlClient;
+using System;
 using System.Security;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Threading.Tasks;
-using System.Data.SqlClient;
 
-
-namespace pruebas_Facturacion.Models
+namespace Prototipo
 {
-    internal class CertificadoDigital
+    public class CertificadoDigital
     {
         public int Id { get; set; }
         private string rutaCertificado;
         private SecureString contraseña;
         private X509Certificate2 certificado;
-        private MySqlConnection conexion = new MySqlConnection();
+        private ConexionSQL conexionSQL = new ConexionSQL();
 
         // Constructor para inicializar la ruta del archivo PFX y su contraseña
         public CertificadoDigital(string rutaCertificado, string contraseña)
@@ -74,9 +69,8 @@ namespace pruebas_Facturacion.Models
         public void GuardarCertificadoEnBD()
         {
             string query = "INSERT INTO certificados (ruta_certificado, contrasena) VALUES (@Ruta, @Contrasena)";
-            using (var conn = conexion)
+            using (var conn = conexionSQL.AbrirConexion())
             {
-                conn.Open();
                 using (var cmd = new MySqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@Ruta", rutaCertificado);
@@ -114,9 +108,8 @@ namespace pruebas_Facturacion.Models
         public void CargarCertificadoDesdeBD(int id)
         {
             string query = "SELECT ruta_certificado, contrasena FROM certificados WHERE id = @Id";
-            using (var conn = conexion)
+            using (var conn = conexionSQL.AbrirConexion())
             {
-                conn.Open();
                 using (var cmd = new MySqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@Id", id);
@@ -149,9 +142,8 @@ namespace pruebas_Facturacion.Models
         public void ActualizarCertificadoEnBD(int id)
         {
             string query = "UPDATE certificados SET ruta_certificado = @Ruta, contrasena = @Contrasena WHERE id = @Id";
-            using (var conn = conexion)
+            using (var conn = conexionSQL.AbrirConexion())
             {
-                conn.Open();
                 using (var cmd = new MySqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@Ruta", rutaCertificado);
@@ -175,9 +167,8 @@ namespace pruebas_Facturacion.Models
         public void EliminarCertificadoEnBD(int id)
         {
             string query = "DELETE FROM certificados WHERE id = @Id";
-            using (var conn = conexion)
+            using (var conn = conexionSQL.AbrirConexion())
             {
-                conn.Open();
                 using (var cmd = new MySqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@Id", id);
