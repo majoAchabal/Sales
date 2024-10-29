@@ -63,6 +63,9 @@ namespace Prototipo
                 inputName.Text = categoria.Name;
                 inputDescripcion.Text = categoria.Description;
                 inputDescuento.Text = categoria.Descuento?.ToString();
+
+                btnModificar.Enabled = true;
+                
             }
             else
             {
@@ -152,39 +155,11 @@ namespace Prototipo
         //MODIFICAR
 
         private void btnModificar_Click(object sender, EventArgs e)
+
         {
-            if (!int.TryParse(inputID.Text.Trim(), out int id))
-            {
-                MessageBox.Show("Por favor, ingrese un ID válido.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            // Validar nombre como string
-            string newName = inputName.Text.Trim();
-            if (string.IsNullOrEmpty(newName))
-            {
-                MessageBox.Show("Por favor, ingrese un Nombre válido.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            // Validar descripción como varchar
-            string newDescription = inputDescripcion.Text.Trim();
-            if (string.IsNullOrEmpty(newDescription) || newDescription.Length > 255)
-            {
-                MessageBox.Show("Por favor, ingrese una Descripción válida (hasta 255 caracteres).", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            // Validar descuento como double
-            if (!double.TryParse(inputDescuento.Text.Trim(), out double descuento))
-            {
-                MessageBox.Show("Por favor, ingrese un valor numérico válido para el descuento.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            // Ocultar Modificar y mostrar Aceptar
             btnModificar.Visible = false;
             btnAceptar.Visible = true;
+
         }
 
         private void btnModificar_MouseHover(object sender, EventArgs e)
@@ -251,6 +226,7 @@ namespace Prototipo
         private void Categorias_Load(object sender, EventArgs e)
         {
             btnAceptar.Hide();
+            btnModificar.Enabled = false;
             this.ActiveControl = titulo;
         }
         //INPUT NOMBRE
