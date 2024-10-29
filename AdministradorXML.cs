@@ -1,14 +1,11 @@
-﻿using System;
+﻿using MySql.Data.MySqlClient;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MySql.Data.MySqlClient;
 using System.Timers;
 
-namespace pruebas_Facturacion.Models
+namespace Prototipo
 {
-    internal class AdministradorXML
+    public class AdministradorXML
     {
         private readonly string connectionString;
         private readonly Timer reintentoTimer;
@@ -33,17 +30,16 @@ namespace pruebas_Facturacion.Models
             {
                 try
                 {
-                    // Aquí iría el código de envío real, por ejemplo:
                     EnviarFactura(facturaId);
 
                     // Si se envió con éxito, actualizar el estado en la base de datos a "enviado"
                     ActualizarEstadoFactura(facturaId, "enviado");
                     Console.WriteLine($"Factura {facturaId} enviada exitosamente.");
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // Si el envío falla, actualizar el estado a "fallido" o mantenerlo como "pendiente"
-                    Console.WriteLine($"Error al enviar la factura {facturaId}. Se mantiene en pendientes.");
+                    // Si el envío falla, actualizar el estado a "pendiente" y loguear el error
+                    Console.WriteLine($"Error al enviar la factura {facturaId}: {ex.Message}. Se mantiene en pendientes.");
                     ActualizarEstadoFactura(facturaId, "pendiente");
                 }
             }
@@ -75,12 +71,14 @@ namespace pruebas_Facturacion.Models
         // Método para enviar una factura específica (aquí simulado)
         private void EnviarFactura(int facturaId)
         {
-            // Simulación del envío: lanzar una excepción si falla
             // Aquí pondrías el código real para enviar el XML de la factura.
             if (new Random().Next(0, 3) == 0) // Simula una falla 1/3 del tiempo
             {
                 throw new Exception("Fallo simulado en el envío.");
             }
+
+            // Simulación de envío exitoso
+            Console.WriteLine($"Factura {facturaId} enviada correctamente.");
         }
 
         // Método para actualizar el estado de una factura en la base de datos
@@ -98,6 +96,14 @@ namespace pruebas_Facturacion.Models
                     command.ExecuteNonQuery();
                 }
             }
+        }
+
+        // Método para detener el temporizador al finalizar
+        public void DetenerReintento()
+        {
+            reintentoTimer.Stop();
+            reintentoTimer.Dispose();
+            Console.WriteLine("Reintento de envío de facturas detenido.");
         }
     }
 }
