@@ -1,10 +1,8 @@
-﻿using MySql.Data.MySqlClient;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Drawing.Text;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,35 +12,11 @@ namespace Prototipo
 {
     public partial class IniciarSesion : Form
     {
-        private ConexionSQL conexion = new ConexionSQL();
+
         public IniciarSesion()
         {
             InitializeComponent();
 
-        }
-
-        private bool ValidarUser(string username, string password)
-        {
-            bool valid = false;
-            string query = "SELECT COUNT(1) FROM usuarios WHERE username = @username AND password = @password";
-
-            using (var conn = conexion.AbrirConexion())
-            using (var cmd = new MySqlCommand(query, conn))
-            {
-                cmd.Parameters.AddWithValue("@Username", username);
-                cmd.Parameters.AddWithValue("@Password", password);
-
-                try
-                {
-                    int count = Convert.ToInt32(cmd.ExecuteScalar());
-                    return count > 0;
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al validar las credenciales: {ex.Message}");
-                    return false;
-                }
-            }
         }
 
         //Variables Globales
@@ -109,7 +83,6 @@ namespace Prototipo
         {
             btnIniciarSesion.Image = Properties.Resources.btnIniciarSesionSeleccionado;
 
-
         }
 
         private void btnIniciarSesion_MouseLeave(object sender, EventArgs e)
@@ -120,21 +93,28 @@ namespace Prototipo
         private void btnIniciarSesion_Click(object sender, EventArgs e)
         {
             //IMPLEMENTAR AUTENTICACION DE USUARIO
-            string username = inputUsername.Text;
-            string password = inputPassword.Text;
-
-            if (ValidarUser(username, password))
+            if (inputUsername.Text == "" || inputPassword.Text == "")
             {
-                Menu nuevaVentana = new Menu();
-                nuevaVentana.ShowDialog();
-                this.Close();
-            } else
-            {
-                MessageBox.Show("Username o password incorrectos. Intente otra vez.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Ingrese los datos completos");
             }
-
-            
-            
+            else
+            {
+                Usuario user = new Usuario();
+                string username = inputUsername.Text;
+                user = user.BuscarUsuario(username);
+                if (user == null || inputPassword.Text != user.Password)
+                {
+                    MessageBox.Show("Datos de usuario invalidos");
+                    this.inputUsername.Text = "";
+                    this.inputPassword.Text = "";
+                }
+                else
+                {
+                    Menu nuevaVentana = new Menu();
+                    nuevaVentana.ShowDialog();
+                    this.Hide();
+                }
+            }
         }
 
         //
